@@ -1,37 +1,30 @@
 package crawler
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
+	"log"
 
-	"github.com/google/uuid"
 	"github.com/krzysu/web-crawler/internal/models"
 	"golang.org/x/net/html"
 )
 
-// Crawl performs the crawling of a single URL.
-func Crawl(targetURL string) (*models.CrawlResult, error) {
-	// Create a new CrawlResult
-	result := &models.CrawlResult{
-		ID:        uuid.New().String(),
-		URL:       targetURL,
-		Status:    "running",
-		Headings:  make(map[string]int),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+// CrawlFunc is a type for the Crawl function to allow mocking.
+type CrawlFunc func(result *models.CrawlResult) error
 
+// Crawl is the actual crawling function, exposed as a variable for testing.
+var Crawl CrawlFunc = defaultCrawl
+
+// defaultCrawl performs the crawling of a single URL.
+func defaultCrawl(result *models.CrawlResult) error {
 	// Fetch the URL
-	resp, err := http.Get(targetURL)
+	resp, err := http.Get(result.URL)
 	if err != nil {
 		result.Status = "error"
 		result.ErrorMessage = err.Error()
-		return result, err
+		return err
 	}
 	defer resp.Body.Close()
 
@@ -43,7 +36,7 @@ func Crawl(targetURL string) (*models.CrawlResult, error) {
 	if err != nil {
 		result.Status = "error"
 		result.ErrorMessage = err.Error()
-		return result, err
+		return err
 	}
 
 	// Extract information from the parsed HTML
@@ -56,7 +49,7 @@ func Crawl(targetURL string) (*models.CrawlResult, error) {
 	result.Status = "completed"
 	result.UpdatedAt = time.Now()
 
-	return result, nil
+	return nil
 }
 
 // extractInfo traverses the HTML document and extracts the required information.
@@ -77,7 +70,11 @@ func extractInfo(n *html.Node, result *models.CrawlResult) []string {
 					if err != nil {
 						continue
 					}
-					baseURL, _ := url.Parse(result.URL)
+					baseURL, err := url.Parse(result.URL)
+					if err != nil {
+						log.Printf("Error parsing base URL %s: %v", result.URL, err)
+						return links
+					}
 					resolvedLink := baseURL.ResolveReference(link)
 					links = append(links, resolvedLink.String())
 
@@ -129,15 +126,18 @@ func checkLinks(links []string, result *models.CrawlResult) {
 	var wg sync.WaitGroup
 	brokenLinksChan := make(chan map[string]any, len(links))
 
+	log.Printf("Total links to check: %d\n", len(links))
 	for _, link := range links {
 		wg.Add(1)
 		go func(link string) {
 			defer wg.Done()
+			log.Printf("Checking link: %s\n", link)
 			resp, err := http.Head(link)
 			if err != nil {
-				// Handle error, maybe add to a separate list of failed requests
+				log.Printf("Error checking link %s: %v\n", link, err)
 				return
 			}
+			log.Printf("Link %s returned status: %d\n", link, resp.StatusCode)
 			if resp.StatusCode >= 400 {
 				brokenLinksChan <- map[string]any{"url": link, "status_code": resp.StatusCode}
 			}
@@ -150,5 +150,6 @@ func checkLinks(links []string, result *models.CrawlResult) {
 	for brokenLink := range brokenLinksChan {
 		result.BrokenLinks = append(result.BrokenLinks, brokenLink)
 	}
+	log.Printf("Found %d broken links.\n", len(result.BrokenLinks))
 	result.InaccessibleLinksCount = len(result.BrokenLinks)
 }

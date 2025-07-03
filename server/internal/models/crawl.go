@@ -10,20 +10,20 @@ import (
 // CrawlResult represents the data collected from a crawled URL.
 
 type CrawlResult struct {
-	ID                     string    `json:"id"`
-	URL                    string    `json:"url"`
-	Status                 string    `json:"status"`
-	PageTitle              string    `json:"page_title"`
-	HTMLVersion            string    `json:"html_version"`
-	Headings               JSONMap   `json:"headings"`
-	InternalLinksCount     int       `json:"internal_links_count"`
-	ExternalLinksCount     int       `json:"external_links_count"`
-	InaccessibleLinksCount int       `json:"inaccessible_links_count"`
-	BrokenLinks            JSONArray `json:"broken_links"`
-	HasLoginForm           bool      `json:"has_login_form"`
-	ErrorMessage           string    `json:"error_message"`
-	CreatedAt              time.Time `json:"created_at"`
-	UpdatedAt              time.Time `json:"updated_at"`
+	ID                     uint `gorm:"primarykey"`
+	CreatedAt              time.Time `gorm:"autoCreateTime"`
+	UpdatedAt              time.Time `gorm:"autoUpdateTime"`
+	URL                    string `gorm:"type:text"`
+	Status                 string `gorm:"type:varchar(20)"`
+	PageTitle              string `gorm:"type:varchar(255)"`
+	HTMLVersion            string `gorm:"type:varchar(50)"`
+	Headings               JSONMap `gorm:"type:json"`
+	InternalLinksCount     int
+	ExternalLinksCount     int
+	InaccessibleLinksCount int
+	BrokenLinks            JSONArray `gorm:"type:json"`
+	HasLoginForm           bool
+	ErrorMessage           string `gorm:"type:text"`
 }
 
 // JSONMap is a custom type for handling JSON map[string]int in MySQL.

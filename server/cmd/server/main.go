@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/krzysu/web-crawler/internal/api"
@@ -11,18 +12,21 @@ import (
 
 func main() {
 	// Initialize the database connection
-	if err := database.InitDB("user:password@tcp(127.0.0.1:3306)/crawler_db"); err != nil {
+	db, err := database.NewDB()
+	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	defer database.Close()
+	defer db.Close()
+
+	var wg sync.WaitGroup // Create a WaitGroup for the application
 
 	// Initialize and start the worker dispatcher
-	dispatcher := worker.NewDispatcher(5) // 5 workers
+	dispatcher := worker.NewDispatcher(5, db, &wg) // Pass db and wg to dispatcher
 	dispatcher.Run()
 
 	// Set up the Gin router
 	router := gin.Default()
-	api.SetupRoutes(router)
+	api.SetupRoutes(router, db) // Pass db to API setup
 
 	// Start the server
 	log.Println("Server starting on port 8080")

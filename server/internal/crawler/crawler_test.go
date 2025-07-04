@@ -1,6 +1,8 @@
 package crawler
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -171,4 +173,85 @@ func TestCrawl_ErrorHandling(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, "error", result.Status)
 	assert.Contains(t, result.ErrorMessage, "no such host")
+}
+
+func TestGetHTMLVersion(t *testing.T) {
+	tests := []struct {
+		name     string
+		html     string
+		expected string
+	}{
+		{
+			name:     "HTML5 Doctype",
+			html:     "<!DOCTYPE html>\n<html><body></body></html>",
+			expected: "HTML5",
+		},
+		{
+			name:     "HTML5 Doctype with leading spaces",
+			html:     "  <!DOCTYPE html>\n<html><body></body></html>",
+			expected: "HTML5",
+		},
+		{
+			name:     "HTML 4.01 Strict Doctype",
+			html:     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><body></body></html>",
+			expected: "HTML 4.01 Strict",
+		},
+		{
+			name:     "XHTML 1.0 Strict Doctype",
+			html:     "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html><body></body></html>",
+			expected: "XHTML 1.0 Strict",
+		},
+		{
+			name:     "No Doctype",
+			html:     "<html><body></body></html>",
+			expected: "Unknown",
+		},
+		{
+			name:     "Empty HTML",
+			html:     "",
+			expected: "Unknown",
+		},
+		{
+			name:     "Doctype on second line",
+			html:     "\n<!DOCTYPE html>\n<html><body></body></html>",
+			expected: "HTML5",
+		},
+		{
+            name:     "HTML 2.0 Doctype",
+            html:     "<!DOCTYPE html PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><body></body></html>",
+            expected: "HTML 2.0",
+        },
+        {
+            name:     "HTML 3.2 Doctype",
+            html:     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<html><body></body></html>",
+            expected: "HTML 3.2",
+        },
+        {
+            name:     "XHTML 1.1 Doctype",
+            html:     "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n<html><body></body></html>",
+            expected: "XHTML 1.1",
+        },
+        {
+            name:     "HTML5 with profile",
+            html:     "<!DOCTYPE html profile=\"http://www.w3.org/2000/svg\">\n<html><body></body></html>",
+            expected: "HTML5 with profile",
+        },
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a dummy http.Response
+			resp := &http.Response{
+				Body: io.NopCloser(bytes.NewBufferString(tt.html)),
+			}
+			version := getHTMLVersion(resp)
+			assert.Equal(t, tt.expected, version)
+
+			// Ensure the body is still readable after getHTMLVersion
+			// This is crucial because html.Parse will read it again.
+			remainingBytes, err := io.ReadAll(resp.Body)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.html, string(remainingBytes))
+		})
+	}
 }

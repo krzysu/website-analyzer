@@ -48,6 +48,7 @@ Set the following environment variables for database connection. You can create 
 - `DB_PORT`: Your MySQL port (e.g., `3306`).
 - `DB_NAME`: The name of your database (e.g., `crawler_db`).
 - `PORT`: The port the application will run on (e.g., `8080`).
+- `API_KEY`: A secret key required for authenticating API requests. Generate a strong, random key.
 
 ### 3. Running the Application
 
@@ -67,28 +68,32 @@ For easier setup with MySQL, a `docker-compose.yml` file is provided in the proj
 
 The backend exposes the following RESTful API endpoints:
 
--   **`POST /urls`**
-    -   **Description:** Adds a new URL to the queue for analysis.
-    -   **Request Body:** `{"url": "http://example.com"}`
-    -   **Example:** `curl -X POST -H "Content-Type: application/json" -d '{"url": "http://example.com"}' http://localhost:8080/urls`
+- **`POST /urls`**
 
--   **`GET /urls`**
-    -   **Description:** Retrieves a paginated, sortable, and filterable list of all analyzed URLs and their crawl results.
-    -   **Example:** `curl http://localhost:8080/urls`
+  - **Description:** Adds a new URL to the queue for analysis.
+  - **Request Body:** `{"url": "http://example.com"}`
+  - **Example:** `curl -X POST -H "Content-Type: application/json" -d '{"url": "http://example.com"}' http://localhost:8080/urls`
 
--   **`GET /urls/:id`**
-    -   **Description:** Retrieves detailed information for a single crawl result by its ID.
-    -   **Example:** `curl http://localhost:8080/urls/123`
+- **`GET /urls`**
 
--   **`DELETE /urls`**
-    -   **Description:** Deletes multiple crawl results.
-    -   **Request Body:** `{"ids": [1, 2, 3]}`
-    -   **Example:** `curl -X DELETE -H "Content-Type: application/json" -d '{"ids": [1, 2]}' http://localhost:8080/urls`
+  - **Description:** Retrieves a paginated, sortable, and filterable list of all analyzed URLs and their crawl results.
+  - **Example:** `curl http://localhost:8080/urls`
 
--   **`POST /urls/rerun`**
-    -   **Description:** Re-runs analysis on multiple URLs by their IDs.
-    -   **Request Body:** `{"ids": [1, 2, 3]}`
-    -   **Example:** `curl -X POST -H "Content-Type: application/json" -d '{"ids": [1, 2]}' http://localhost:8080/urls/rerun`
+- **`GET /urls/:id`**
+
+  - **Description:** Retrieves detailed information for a single crawl result by its ID.
+  - **Example:** `curl http://localhost:8080/urls/123`
+
+- **`DELETE /urls`**
+
+  - **Description:** Deletes multiple crawl results.
+  - **Request Body:** `{"ids": [1, 2, 3]}`
+  - **Example:** `curl -X DELETE -H "Content-Type: application/json" -d '{"ids": [1, 2]}' http://localhost:8080/urls`
+
+- **`POST /urls/rerun`**
+  - **Description:** Re-runs analysis on multiple URLs by their IDs.
+  - **Request Body:** `{"ids": [1, 2, 3]}`
+  - **Example:** `curl -X POST -H "Content-Type: application/json" -d '{"ids": [1, 2]}' http://localhost:8080/urls/rerun`
 
 ### 5. Testing
 

@@ -1,9 +1,13 @@
 package crawler
 
 import (
+	"bufio"
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -108,11 +112,35 @@ func checkForLoginForm(n *html.Node, result *models.CrawlResult) {
 
 // getHTMLVersion tries to determine the HTML version from the doctype.
 func getHTMLVersion(resp *http.Response) string {
-	// This is a simplified approach. A more robust solution would involve
-	// more complex parsing of the doctype.
-	// For now, we will just check for HTML5 doctype.
-	// A proper implementation would require a more sophisticated check.
-	return "HTML5"
+	// Read the response body into a buffer so it can be read multiple times
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "Unknown"
+	}
+	// Restore the body for subsequent reads (e.g., by html.Parse)
+	resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	scanner := bufio.NewScanner(bytes.NewReader(bodyBytes))
+	for i := 0; i < 10 && scanner.Scan(); i++ { // Scan up to first 10 lines
+		line := strings.ToLower(strings.TrimSpace(scanner.Text()))
+		if strings.HasPrefix(line, "<!doctype html>") {
+			return "HTML5"
+		} else if strings.Contains(line, "-//w3c//dtd html 4.01//en") {
+			return "HTML 4.01 Strict"
+		} else if strings.Contains(line, "-//w3c//dtd xhtml 1.0 strict//en") {
+			return "XHTML 1.0 Strict"
+		} else if strings.Contains(line, "-//ietf//dtd html 2.0//en") {
+			return "HTML 2.0"
+		} else if strings.Contains(line, "-//w3c//dtd html 3.2 final//en") {
+			return "HTML 3.2"
+		} else if strings.Contains(line, "-//w3c//dtd xhtml 1.1//en") {
+			return "XHTML 1.1"
+		} else if strings.Contains(line, "html profile=") {
+			return "HTML5 with profile"
+		}
+	}
+
+	return "Unknown"
 }
 
 // checkLinks checks the status of a list of links concurrently.

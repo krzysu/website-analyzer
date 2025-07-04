@@ -20,6 +20,13 @@ func setupServer(db *database.DB) *gin.Engine {
 
 	// Set up the Gin router
 	router := gin.Default()
+
+	// Apply CORS middleware
+	router.Use(api.CORSMiddleware())
+
+	// Apply API Key Authentication middleware
+	router.Use(api.APIKeyAuth())
+
 	api.SetupRoutes(router, db, dispatcher.JobQueue) // Pass db and JobQueue to API setup
 
 	return router

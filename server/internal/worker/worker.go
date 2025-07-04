@@ -4,10 +4,10 @@ import (
 	"log"
 	"sync"
 
-	"github.com/krzysu/web-crawler/internal/crawler"
-	"github.com/krzysu/web-crawler/internal/database"
-	"github.com/krzysu/web-crawler/internal/models"
-	
+	"github.com/krzysu/website-analyzer/internal/crawler"
+	"github.com/krzysu/website-analyzer/internal/database"
+	"github.com/krzysu/website-analyzer/internal/models"
+
 	"time"
 )
 
@@ -46,6 +46,7 @@ func (w Worker) Start() {
 
 			select {
 			case job := <-w.JobChannel:
+				defer w.wg.Done() // Ensure Done() is called when the job is processed
 				// We have received a work request.
 				log.Printf("Processing job for URL: %s\n", job.URL)
 
@@ -147,6 +148,7 @@ func (d *Dispatcher) Run() {
 func (d *Dispatcher) dispatch() {
 	for job := range d.JobQueue { // Use d.JobQueue
 		// A job request has been received
+		d.wg.Add(1) // Increment the WaitGroup counter for each job
 		go func(job Job) {
 			// Try to obtain a worker job channel that is available.
 			// This will block until a worker is idle

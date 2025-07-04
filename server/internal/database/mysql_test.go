@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/krzysu/web-crawler/internal/models"
+	"github.com/krzysu/website-analyzer/internal/models"
 	"github.com/stretchr/testify/assert"
 	gorm "gorm.io/gorm"
 )

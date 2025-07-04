@@ -1,13 +1,13 @@
 package crawler
 
 import (
+	"log"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
-	"log"
 
-	"github.com/krzysu/web-crawler/internal/models"
+	"github.com/krzysu/website-analyzer/internal/models"
 	"golang.org/x/net/html"
 )
 

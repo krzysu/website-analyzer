@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krzysu/web-crawler/internal/models"
+	"github.com/krzysu/website-analyzer/internal/models"
 	gorm_mysql "gorm.io/driver/mysql"
 	gorm_sqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"

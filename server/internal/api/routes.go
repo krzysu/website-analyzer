@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/krzysu/web-crawler/internal/database"
-	"github.com/krzysu/web-crawler/internal/worker"
+	"github.com/krzysu/website-analyzer/internal/database"
+	"github.com/krzysu/website-analyzer/internal/worker"
 )
 
 func SetupRoutes(router *gin.Engine, db *database.DB, jobQueue chan worker.Job) {

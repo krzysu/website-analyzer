@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	
-	"github.com/krzysu/web-crawler/internal/database"
-	"github.com/krzysu/web-crawler/internal/models"
-	"github.com/krzysu/web-crawler/internal/worker"
+
+	"github.com/krzysu/website-analyzer/internal/database"
+	"github.com/krzysu/website-analyzer/internal/models"
+	"github.com/krzysu/website-analyzer/internal/worker"
 )
 
 func AddURL(db *database.DB, jobQueue chan worker.Job) gin.HandlerFunc {
@@ -24,7 +24,7 @@ func AddURL(db *database.DB, jobQueue chan worker.Job) gin.HandlerFunc {
 
 		// Create a new CrawlResult and save it with "queued" status
 		result := &models.CrawlResult{
-			
+
 			URL:       json.URL,
 			Status:    "queued",
 			CreatedAt: time.Now(),

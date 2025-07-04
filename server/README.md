@@ -40,50 +40,68 @@ This is the backend service for a web crawler application, built with Go and Gin
 
 First, you need to set up your MySQL database. Create a database named `crawler_db` (or whatever you configure in `main.go`). GORM will handle the table creation and migration automatically based on the `models.CrawlResult` struct.
 
-Set the following environment variables for database connection. You can create a `.env` file in the project root and use a tool like `godotenv` to load these variables.
+Set the following environment variables for database connection. You can create a `.env` file in the project root, and the application will automatically load these variables.
 
 - `DB_USER`: Your MySQL username.
 - `DB_PASSWORD`: Your MySQL password.
 - `DB_HOST`: Your MySQL host (e.g., `127.0.0.1` or `localhost`).
 - `DB_PORT`: Your MySQL port (e.g., `3306`).
 - `DB_NAME`: The name of your database (e.g., `crawler_db`).
+- `PORT`: The port the application will run on (e.g., `8080`).
 
 ### 3. Running the Application
 
-#### A. Locally (without Docker)
+#### 1. Using Docker Compose
 
-1.  **Navigate to the project directory:**
+For easier setup with MySQL, a `docker-compose.yml` file is provided in the project root.
 
-    ```bash
-    cd /Users/krzysu/work/web-crawler/server
-    ```
-
-2.  **Download Go modules:**
+1.  **Run Docker Compose:**
 
     ```bash
-    go mod tidy
+    docker-compose up --build
     ```
 
-3.  **Run the application:**
+    This will build the backend image, start the MySQL container, and then start the backend application.
 
-    ```bash
-    go run cmd/server/main.go
-    ```
+### 4. API Endpoints
 
-    The server will start on `http://localhost:8080`.
+The backend exposes the following RESTful API endpoints:
 
-#### B. Using Docker
+-   **`POST /urls`**
+    -   **Description:** Adds a new URL to the queue for analysis.
+    -   **Request Body:** `{"url": "http://example.com"}`
+    -   **Example:** `curl -X POST -H "Content-Type: application/json" -d '{"url": "http://example.com"}' http://localhost:8080/urls`
 
-1.  **Build the Docker image:**
+-   **`GET /urls`**
+    -   **Description:** Retrieves a paginated, sortable, and filterable list of all analyzed URLs and their crawl results.
+    -   **Example:** `curl http://localhost:8080/urls`
 
-    ```bash
-    docker build -t web-crawler-backend .
-    ```
+-   **`GET /urls/:id`**
+    -   **Description:** Retrieves detailed information for a single crawl result by its ID.
+    -   **Example:** `curl http://localhost:8080/urls/123`
 
-2.  **Run the Docker container:**
+-   **`DELETE /urls`**
+    -   **Description:** Deletes multiple crawl results.
+    -   **Request Body:** `{"ids": [1, 2, 3]}`
+    -   **Example:** `curl -X DELETE -H "Content-Type: application/json" -d '{"ids": [1, 2]}' http://localhost:8080/urls`
 
-    ```bash
-    docker run -p 8080:8080 --name web-crawler-app web-crawler-backend
-    ```
+-   **`POST /urls/rerun`**
+    -   **Description:** Re-runs analysis on multiple URLs by their IDs.
+    -   **Request Body:** `{"ids": [1, 2, 3]}`
+    -   **Example:** `curl -X POST -H "Content-Type: application/json" -d '{"ids": [1, 2]}' http://localhost:8080/urls/rerun`
 
-    _Note: Ensure your MySQL server is accessible from within the Docker container if it's running on a different host or network. You might need to link containers or use the host network mode._
+### 5. Testing
+
+To run the tests for the backend, navigate to the `server` directory and execute:
+
+```bash
+go test ./...
+```
+
+### 6. Linting
+
+This project uses `golangci-lint` for linting. To run the linter, ensure you have it installed and then run:
+
+```bash
+golangci-lint run
+```

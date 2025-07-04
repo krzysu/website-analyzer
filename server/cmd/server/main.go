@@ -6,9 +6,10 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/krzysu/web-crawler/internal/api"
-	"github.com/krzysu/web-crawler/internal/database"
-	"github.com/krzysu/web-crawler/internal/worker"
+	"github.com/joho/godotenv"
+	"github.com/krzysu/website-analyzer/internal/api"
+	"github.com/krzysu/website-analyzer/internal/database"
+	"github.com/krzysu/website-analyzer/internal/worker"
 )
 
 func setupServer(db *database.DB) *gin.Engine {
@@ -25,6 +26,11 @@ func setupServer(db *database.DB) *gin.Engine {
 }
 
 func main() {
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Error loading .env file: %v", err)
+	}
+
 	// Initialize the database connection
 	db, err := database.NewDB()
 	if err != nil {

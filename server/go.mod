@@ -1,9 +1,10 @@
-module github.com/krzysu/web-crawler
+module github.com/krzysu/website-analyzer
 
 go 1.24.4
 
 require (
 	github.com/gin-gonic/gin v1.10.1
+	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/net v0.41.0
 	gorm.io/driver/mysql v1.6.0

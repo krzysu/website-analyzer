@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -7,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/krzysu/web-crawler/internal/database"
+	"github.com/krzysu/website-analyzer/internal/database"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,8 +19,20 @@ func TestServerStartup(t *testing.T) {
 	defer db.Close()
 
 	router := setupServer(db)
-	go router.Run(":" + os.Getenv("PORT"))
-	time.Sleep(1 * time.Second)
+	go func() {
+		err = router.Run(":" + os.Getenv("PORT"))
+		assert.NoError(t, err)
+	}()
+	// Wait for the server to start
+	maxRetries := 10
+	for i := 0; i < maxRetries; i++ {
+		resp, err := http.Get("http://localhost:" + os.Getenv("PORT") + "/urls")
+		if err == nil && resp.StatusCode == http.StatusOK {
+			resp.Body.Close()
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
 
 	// Check if the server is running
 	_, err = http.Get("http://localhost:" + os.Getenv("PORT") + "/urls")

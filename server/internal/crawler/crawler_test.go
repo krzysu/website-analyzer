@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	
-	"github.com/krzysu/web-crawler/internal/models"
+
+	"github.com/krzysu/website-analyzer/internal/models"
 )
 
 func TestCrawl_BasicExtraction(t *testing.T) {

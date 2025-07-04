@@ -1,12 +1,11 @@
-
 package worker
 
 import (
 	"sync"
 	"testing"
 
-	"github.com/krzysu/web-crawler/internal/database"
-	"github.com/krzysu/web-crawler/internal/models"
+	"github.com/krzysu/website-analyzer/internal/database"
+	"github.com/krzysu/website-analyzer/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +20,6 @@ func TestWorker(t *testing.T) {
 
 	// Test creating a new crawl result
 	job := Job{URL: "http://example.com"}
-	wg.Add(1)
 	dispatcher.JobQueue <- job
 
 	// Test re-crawling an existing result
@@ -29,7 +27,6 @@ func TestWorker(t *testing.T) {
 	err = db.CreateCrawlResult(result)
 	assert.NoError(t, err)
 	job = Job{ID: result.ID, URL: result.URL}
-	wg.Add(1)
 	dispatcher.JobQueue <- job
 
 	wg.Wait()

@@ -6,45 +6,10 @@ import (
 	"testing"
 	"time"
 
-	
 	"github.com/krzysu/web-crawler/internal/models"
 	"github.com/stretchr/testify/assert"
 	gorm "gorm.io/gorm"
 )
-
-/*
-func TestNewDB_PingError(t *testing.T) {
-	sqlDB, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	// Defer closing the DB until the test is done
-	defer sqlDB.Close()
-
-	mock.ExpectPing().WillReturnError(errors.New("failed to connect"))
-	// Directly use the mocked sqlDB for the DB struct
-	dbInstance := &DB{db: sqlDB}
-	err = dbInstance.db.Ping()
-	assert.Error(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestNewDB_PingSuccess(t *testing.T) {
-	sqlDB, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer sqlDB.Close()
-
-	mock.ExpectPing().WillReturnError(nil)
-	// Directly use the mocked sqlDB for the DB struct
-	dbInstance := &DB{db: sqlDB}
-	err = dbInstance.db.Ping()
-	assert.NoError(t, err)
-	assert.NotNil(t, dbInstance)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-*/
 
 func TestCreateCrawlResult(t *testing.T) {
 	dbInstance, err := NewDBForTest()
@@ -128,7 +93,7 @@ func TestDeleteCrawlResult(t *testing.T) {
 	defer dbInstance.Close()
 
 	result := &models.CrawlResult{
-		URL:   "http://example.com/delete",
+		URL: "http://example.com/delete",
 	}
 	err = dbInstance.CreateCrawlResult(result)
 	assert.NoError(t, err)
@@ -150,7 +115,7 @@ func TestDeleteCrawlResults(t *testing.T) {
 	ids := []uint{}
 	for i := 0; i < 3; i++ {
 		result := &models.CrawlResult{
-			URL:   fmt.Sprintf("http://example.com/bulk-delete-%d", i),
+			URL: fmt.Sprintf("http://example.com/bulk-delete-%d", i),
 		}
 		err = dbInstance.CreateCrawlResult(result)
 		assert.NoError(t, err)

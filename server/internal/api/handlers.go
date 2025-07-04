@@ -12,7 +12,7 @@ import (
 	"github.com/krzysu/web-crawler/internal/worker"
 )
 
-func AddURL(db *database.DB) gin.HandlerFunc {
+func AddURL(db *database.DB, jobQueue chan worker.Job) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var json struct {
 			URL string `json:"url"`
@@ -36,7 +36,7 @@ func AddURL(db *database.DB) gin.HandlerFunc {
 		}
 
 		// Submit job to the worker queue
-		worker.JobQueue <- worker.Job{ID: result.ID, URL: result.URL}
+		jobQueue <- worker.Job{ID: result.ID, URL: result.URL}
 
 		c.JSON(http.StatusOK, gin.H{"message": "URL submitted for crawling", "id": strconv.FormatUint(uint64(result.ID), 10)})
 	}
@@ -104,7 +104,7 @@ func DeleteURLs(db *database.DB) gin.HandlerFunc {
 	}
 }
 
-func RerunURLs(db *database.DB) gin.HandlerFunc {
+func RerunURLs(db *database.DB, jobQueue chan worker.Job) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var json struct {
 			IDs []uint `json:"ids"`
@@ -116,7 +116,7 @@ func RerunURLs(db *database.DB) gin.HandlerFunc {
 
 		for _, id := range json.IDs {
 			// Submit re-crawl job to the worker queue
-			worker.JobQueue <- worker.Job{ID: id}
+			jobQueue <- worker.Job{ID: id}
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Re-crawl initiated for selected URLs"})

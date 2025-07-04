@@ -17,9 +17,6 @@ type Job struct {
 	ID  uint // ID of the crawl result in the database, if it exists
 }
 
-// JobQueue is a buffered channel that holds incoming jobs.
-var JobQueue chan Job
-
 // Worker represents the worker that executes the jobs.
 type Worker struct {
 	WorkerPool chan chan Job
@@ -49,8 +46,6 @@ func (w Worker) Start() {
 
 			select {
 			case job := <-w.JobChannel:
-				defer w.wg.Done() // Ensure Done() is called when job processing finishes
-
 				// We have received a work request.
 				log.Printf("Processing job for URL: %s\n", job.URL)
 
@@ -62,26 +57,29 @@ func (w Worker) Start() {
 					result, err = w.db.GetCrawlResult(job.ID)
 					if err != nil {
 						log.Printf("Error getting existing crawl result for ID %d: %v\n", job.ID, err)
-						continue // Continue to next job, Done() is deferred
+						w.wg.Done()
+						continue
 					}
+					result.Headings = make(map[string]int)
+					result.BrokenLinks = make([]map[string]interface{}, 0)
 					result.Status = "running"
-if err := w.db.UpdateCrawlResult(result); err != nil {
+					if err := w.db.UpdateCrawlResult(result); err != nil {
 						log.Printf("Error updating crawl result for ID %d: %v\n", result.ID, err)
-
 					}
 				} else {
 					// New crawl, create a placeholder result
 					result = &models.CrawlResult{
-						
 						URL:       job.URL,
 						Status:    "queued",
+						Headings:  make(map[string]int),
 						CreatedAt: time.Now(),
 						UpdatedAt: time.Now(),
 					}
 					err = w.db.CreateCrawlResult(result)
 					if err != nil {
 						log.Printf("Error creating new crawl result for URL %s: %v\n", job.URL, err)
-						continue // Continue to next job, Done() is deferred
+						w.wg.Done()
+						continue
 					}
 				}
 
@@ -93,10 +91,12 @@ if err := w.db.UpdateCrawlResult(result); err != nil {
 				}
 
 				// Update the database with the crawled result
-                result.UpdatedAt = time.Now()
-                if err := w.db.UpdateCrawlResult(result); err != nil {
-                    log.Printf("Error updating crawl result for URL %s: %v\n", result.URL, err)
-                }
+				result.UpdatedAt = time.Now()
+				if err := w.db.UpdateCrawlResult(result); err != nil {
+					log.Printf("Error updating crawl result for URL %s: %v\n", result.URL, err)
+				}
+
+				w.wg.Done()
 
 			case <-w.quit:
 				// We have received a signal to stop
@@ -116,6 +116,7 @@ func (w Worker) Stop() {
 type Dispatcher struct {
 	maxWorkers int
 	WorkerPool chan chan Job
+	JobQueue   chan Job // Add JobQueue to Dispatcher
 	db         *database.DB
 	wg         *sync.WaitGroup // Add WaitGroup to Dispatcher
 }
@@ -125,6 +126,7 @@ func NewDispatcher(maxWorkers int, db *database.DB, wg *sync.WaitGroup) *Dispatc
 	return &Dispatcher{
 		maxWorkers: maxWorkers,
 		WorkerPool: make(chan chan Job, maxWorkers),
+		JobQueue:   make(chan Job, 100), // Initialize JobQueue here
 		db:         db,
 		wg:         wg, // Use the provided WaitGroup
 	}
@@ -143,7 +145,7 @@ func (d *Dispatcher) Run() {
 
 // dispatch listens for jobs on the JobQueue and dispatches them to available workers.
 func (d *Dispatcher) dispatch() {
-	for job := range JobQueue {
+	for job := range d.JobQueue { // Use d.JobQueue
 		// A job request has been received
 		go func(job Job) {
 			// Try to obtain a worker job channel that is available.
@@ -154,8 +156,4 @@ func (d *Dispatcher) dispatch() {
 			jobChannel <- job
 		}(job)
 	}
-}
-
-func init() {
-	JobQueue = make(chan Job, 100) // Buffer up to 100 jobs
 }

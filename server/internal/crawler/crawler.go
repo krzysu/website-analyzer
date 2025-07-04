@@ -11,14 +11,8 @@ import (
 	"golang.org/x/net/html"
 )
 
-// CrawlFunc is a type for the Crawl function to allow mocking.
-type CrawlFunc func(result *models.CrawlResult) error
-
-// Crawl is the actual crawling function, exposed as a variable for testing.
-var Crawl CrawlFunc = defaultCrawl
-
-// defaultCrawl performs the crawling of a single URL.
-func defaultCrawl(result *models.CrawlResult) error {
+// Crawl performs the crawling of a single URL.
+func Crawl(result *models.CrawlResult) error {
 	// Fetch the URL
 	resp, err := http.Get(result.URL)
 	if err != nil {

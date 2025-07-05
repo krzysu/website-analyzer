@@ -46,59 +46,7 @@ func (w Worker) Start() {
 
 			select {
 			case job := <-w.JobChannel:
-				defer w.wg.Done() // Ensure Done() is called when the job is processed
-				// We have received a work request.
-				log.Printf("Processing job for URL: %s\n", job.URL)
-
-				var result *models.CrawlResult
-				var err error
-
-				if job.ID != 0 {
-					// If ID is provided, it's a re-crawl, so fetch existing result
-					result, err = w.db.GetCrawlResult(job.ID)
-					if err != nil {
-						log.Printf("Error getting existing crawl result for ID %d: %v\n", job.ID, err)
-						w.wg.Done()
-						continue
-					}
-					result.Headings = make(map[string]int)
-					result.BrokenLinks = make([]map[string]interface{}, 0)
-					result.Status = "running"
-					if err := w.db.UpdateCrawlResult(result); err != nil {
-						log.Printf("Error updating crawl result for ID %d: %v\n", result.ID, err)
-					}
-				} else {
-					// New crawl, create a placeholder result
-					result = &models.CrawlResult{
-						URL:       job.URL,
-						Status:    "queued",
-						Headings:  make(map[string]int),
-						CreatedAt: time.Now(),
-						UpdatedAt: time.Now(),
-					}
-					err = w.db.CreateCrawlResult(result)
-					if err != nil {
-						log.Printf("Error creating new crawl result for URL %s: %v\n", job.URL, err)
-						w.wg.Done()
-						continue
-					}
-				}
-
-				crawlErr := crawler.Crawl(result)
-				if crawlErr != nil {
-					log.Printf("Error crawling URL %s: %v\n", job.URL, crawlErr)
-					result.Status = "error"
-					result.ErrorMessage = crawlErr.Error()
-				}
-
-				// Update the database with the crawled result
-				result.UpdatedAt = time.Now()
-				if err := w.db.UpdateCrawlResult(result); err != nil {
-					log.Printf("Error updating crawl result for URL %s: %v\n", result.URL, err)
-				}
-
-				w.wg.Done()
-
+				w.processJob(job)
 			case <-w.quit:
 				// We have received a signal to stop
 				log.Println("Worker stopping")
@@ -106,6 +54,64 @@ func (w Worker) Start() {
 			}
 		}
 	}()
+}
+
+func (w Worker) processJob(job Job) {
+	defer w.wg.Done()
+
+	log.Printf("Processing job for URL: %s\n", job.URL)
+
+	var result *models.CrawlResult
+	var err error
+
+	if job.ID != 0 {
+		// If ID is provided, it's a re-crawl, so fetch existing result
+		result, err = w.db.GetCrawlResult(job.ID)
+		if err != nil {
+			log.Printf("Error getting existing crawl result for ID %d: %v\n", job.ID, err)
+			return
+		}
+		// Reset only countable fields for re-analysis
+		result.Status = "running"
+		result.ErrorMessage = ""
+		result.Headings = make(map[string]int)
+		result.InternalLinksCount = 0
+		result.ExternalLinksCount = 0
+		result.InaccessibleLinksCount = 0
+		result.BrokenLinks = make([]map[string]interface{}, 0)
+		result.UpdatedAt = time.Now()
+
+		if err := w.db.UpdateCrawlResult(result); err != nil {
+			log.Printf("Error updating crawl result for ID %d: %v\n", result.ID, err)
+		}
+	} else {
+		// New crawl, create a placeholder result
+		result = &models.CrawlResult{
+			URL:       job.URL,
+			Status:    "queued",
+			Headings:  make(map[string]int),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		err = w.db.CreateCrawlResult(result)
+		if err != nil {
+			log.Printf("Error creating new crawl result for URL %s: %v\n", job.URL, err)
+			return
+		}
+	}
+
+	crawlErr := crawler.Crawl(result)
+	if crawlErr != nil {
+		log.Printf("Error crawling URL %s: %v\n", job.URL, crawlErr)
+		result.Status = "error"
+		result.ErrorMessage = crawlErr.Error()
+	}
+
+	// Update the database with the crawled result
+	result.UpdatedAt = time.Now()
+	if err := w.db.UpdateCrawlResult(result); err != nil {
+		log.Printf("Error updating crawl result for URL %s: %v\n", result.URL, err)
+	}
 }
 
 // Stop tells the worker to stop.

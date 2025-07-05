@@ -40,7 +40,7 @@ const UrlTable: React.FC<UrlTableProps> = ({
               onClick={() => onRowClick(result.ID)}
               style={{ cursor: "pointer" }}
             >
-              {result.PageTitle}
+              {result.PageTitle || "Fetching title..."}
             </td>
             <td>{result.HTMLVersion}</td>
             <td>{result.InternalLinksCount}</td>

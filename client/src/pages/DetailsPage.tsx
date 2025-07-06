@@ -1,51 +1,24 @@
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
-import { useEffect, useState } from "react";
 import { Pie } from "react-chartjs-2";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { useCrawlResultDetail } from "@/hooks/useCrawlResultDetail";
 import { getStatusEmoji } from "@/lib/emojis";
-import type { CrawlResult } from "@/types.ts";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export function DetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const [crawlResult, setCrawlResult] = useState<CrawlResult | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { crawlResult, isLoading, error } = useCrawlResultDetail(id || "");
 
-  useEffect(() => {
-    const fetchUrlDetail = async () => {
-      const apiKey = import.meta.env.VITE_API_KEY;
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/urls/${id}`, {
-          headers: {
-            "X-API-Key": apiKey,
-          },
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch URL details");
-        }
-        const data: CrawlResult = await response.json();
-        setCrawlResult(data);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUrlDetail();
-  }, [id]);
-
-  if (loading) {
+  if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
   }
 
   if (error) {
-    return <div className="text-center py-8 text-red-500">Error: {error}</div>;
+    return <div className="text-center py-8 text-red-500">Error: {error.message}</div>;
   }
 
   if (!crawlResult) {
@@ -64,7 +37,7 @@ export function DetailsPage() {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <>
       <Card className="mb-4">
         <CardHeader>
           <CardTitle>Details for: {crawlResult.URL}</CardTitle>
@@ -166,6 +139,6 @@ export function DetailsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }

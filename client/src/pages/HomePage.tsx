@@ -11,12 +11,12 @@ export function HomePage() {
   const [selectedUrls, setSelectedUrls] = useState<number[]>([]);
   const navigate = useNavigate();
 
-  const { crawlResults, fetchCrawlResults } = useCrawlResults();
+  const { crawlResults } = useCrawlResults({ polling: true });
   const {
     handleUrlSubmit,
     handleBulkDelete: performBulkDelete,
     handleBulkRerun: performBulkRerun,
-  } = useUrlActions(fetchCrawlResults);
+  } = useUrlActions();
 
   const handleRowClick = (id: number) => {
     navigate(`/details/${id}`);

@@ -1,61 +1,47 @@
-import { useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApi } from "./useApi";
 
-export function useUrlActions(fetchCrawlResults: () => void) {
+export function useUrlActions() {
   const { callApi } = useApi();
+  const queryClient = useQueryClient();
 
-  const handleUrlSubmit = useCallback(
-    async (url: string) => {
-      try {
-        await callApi("/urls", {
-          method: "POST",
-          body: JSON.stringify({ url }),
-        });
-
-        fetchCrawlResults(); // Refresh the list after submitting a new URL
-      } catch (error) {
-        console.error("Error submitting URL:", error);
-        // TODO: Display error message to user
-      }
+  const { mutate: handleUrlSubmit } = useMutation({
+    mutationFn: async (url: string) => {
+      await callApi("/urls", {
+        method: "POST",
+        body: JSON.stringify({ url }),
+      });
     },
-    [callApi, fetchCrawlResults],
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crawlResults"] });
+    },
+  });
 
-  const handleBulkDelete = useCallback(
-    async (selectedUrls: number[]) => {
+  const { mutate: handleBulkDelete } = useMutation({
+    mutationFn: async (selectedUrls: number[]) => {
       if (selectedUrls.length === 0) return;
-
-      try {
-        await callApi("/urls", {
-          method: "DELETE",
-          body: JSON.stringify({ ids: selectedUrls }),
-        });
-
-        fetchCrawlResults();
-      } catch (error) {
-        console.error("Error deleting URLs:", error);
-      }
+      await callApi("/urls", {
+        method: "DELETE",
+        body: JSON.stringify({ ids: selectedUrls }),
+      });
     },
-    [callApi, fetchCrawlResults],
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crawlResults"] });
+    },
+  });
 
-  const handleBulkRerun = useCallback(
-    async (selectedUrls: number[]) => {
+  const { mutate: handleBulkRerun } = useMutation({
+    mutationFn: async (selectedUrls: number[]) => {
       if (selectedUrls.length === 0) return;
-
-      try {
-        await callApi("/urls/rerun", {
-          method: "POST",
-          body: JSON.stringify({ ids: selectedUrls }),
-        });
-
-        fetchCrawlResults();
-      } catch (error) {
-        console.error("Error re-running analysis:", error);
-      }
+      await callApi("/urls/rerun", {
+        method: "POST",
+        body: JSON.stringify({ ids: selectedUrls }),
+      });
     },
-    [callApi, fetchCrawlResults],
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crawlResults"] });
+    },
+  });
 
   return { handleUrlSubmit, handleBulkDelete, handleBulkRerun };
 }

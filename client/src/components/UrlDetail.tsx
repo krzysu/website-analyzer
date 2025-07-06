@@ -30,8 +30,8 @@ const UrlDetail: React.FC = () => {
         }
         const data: CrawlResult = await response.json();
         setCrawlResult(data);
-      } catch (err: unknown) {
-        setError(err.message);
+      } catch (err) {
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }

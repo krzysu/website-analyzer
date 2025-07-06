@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "biome check --write .",
+    "build": "tsc && vite build",
+    "lint": "biome check . && npm run typecheck",
+    "lint:fix": "biome check --write . && npm run typecheck",
+    "typecheck": "tsc --noEmit --project tsconfig.app.json",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",

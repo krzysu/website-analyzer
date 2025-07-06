@@ -56,13 +56,21 @@ Set the following environment variables for database connection. You can create 
 
 For easier setup with MySQL, a `docker-compose.yml` file is provided in the project root.
 
-1.  **Run Docker Compose:**
+1.  **Run Docker Compose (Production Mode):**
 
     ```bash
-    docker-compose up --build
+    docker-compose up --build backend
     ```
 
     This will build the backend image, start the MySQL container, and then start the backend application.
+
+2.  **Run Docker Compose (Development Mode with Live-Reloading):**
+
+    For development, you can use the `backend-dev` service which includes live-reloading. Any changes to the Go source code in the `server` directory will automatically trigger a recompile and restart of the backend.
+
+    ```bash
+    docker-compose up --build backend-dev
+    ```
 
 ### 4. API Endpoints
 

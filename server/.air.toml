@@ -1,0 +1,12 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/website-analyzer-server ./cmd/server"
+bin = "./tmp/website-analyzer-server"
+include_ext = ["go", "tpl", "tmpl", "html"]
+exclude_dir = ["tmp", "vendor", "node_modules"]
+delay = 1000                                                   # ms
+
+[run]
+cmds = ["./tmp/website-analyzer-server"]

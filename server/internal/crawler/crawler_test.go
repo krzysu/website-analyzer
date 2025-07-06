@@ -2,9 +2,11 @@ package crawler
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -140,7 +142,7 @@ func TestCrawl_InaccessibleLinks(t *testing.T) {
 }
 
 func TestCrawl_ErrorHandling(t *testing.T) {
-	// Test with an invalid URL
+	// Test with an invalid URL (unsupported protocol scheme)
 	result := &models.CrawlResult{
 		URL:       "invalid-url",
 		Status:    "queued",
@@ -154,15 +156,20 @@ func TestCrawl_ErrorHandling(t *testing.T) {
 	assert.Equal(t, "error", result.Status)
 	assert.Contains(t, result.ErrorMessage, "unsupported protocol scheme")
 
-	// Test with a server that returns an error (e.g., connection refused)
-	// This is harder to mock directly with httptest.NewServer as it implies
-	// the server itself is not reachable. For a real-world scenario, you'd
-	// need to simulate network issues or use a custom http.Client with a Transport
-	// that can inject errors.
+	// Test with a mock server that immediately closes the connection
+	// This simulates a connection refused error.
+	closeConnServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Close the underlying TCP connection immediately
+		hijacker, ok := w.(http.Hijacker)
+		assert.True(t, ok)
+		conn, _, err := hijacker.Hijack()
+		assert.NoError(t, err)
+		conn.Close()
+	}))
+	defer closeConnServer.Close()
 
-	// For now, we can simulate a non-existent domain
 	result = &models.CrawlResult{
-		URL:       "http://nonexistent-domain-12345.com",
+		URL:       closeConnServer.URL,
 		Status:    "queued",
 		Headings:  make(map[string]int),
 		CreatedAt: time.Now(),
@@ -172,8 +179,40 @@ func TestCrawl_ErrorHandling(t *testing.T) {
 	assert.Error(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, "error", result.Status)
-	assert.Contains(t, result.ErrorMessage, "no such host")
+	assert.True(t, strings.Contains(result.ErrorMessage, "connection reset by peer") || strings.Contains(result.ErrorMessage, "EOF") || strings.Contains(result.ErrorMessage, "connection refused"))
+
+	// Test with a mock server that returns a non-200 status code for HEAD request
+	// This simulates an inaccessible link during checkLinks
+	brokenLinkServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer brokenLinkServer.Close()
+
+	mainServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprintf(w, `<!DOCTYPE html>
+<html>
+<body>
+<a href="%s">Broken Link</a>
+</body>
+</html>`, brokenLinkServer.URL)
+	}))
+	defer mainServer.Close()
+
+	result = &models.CrawlResult{
+		URL:       mainServer.URL,
+		Status:    "queued",
+		Headings:  make(map[string]int),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	err = Crawl(result)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "completed", result.Status)
+	assert.Equal(t, 1, result.InaccessibleLinksCount)
 }
+
 
 func TestGetHTMLVersion(t *testing.T) {
 	tests := []struct {

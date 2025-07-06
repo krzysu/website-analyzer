@@ -9,24 +9,56 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pyour_mysql_root_password"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-pyour_mysql_root_password",
+        ]
       timeout: 20s
       retries: 10
 
   backend:
-    build: ./server
+    build:
+      context: ./server
+      target: production
     ports:
       - "8080:8080"
     environment:
-          DB_USER: root
-          DB_PASSWORD: your_mysql_root_password
-          DB_HOST: db
-          DB_PORT: 3306
-          DB_NAME: crawler_db
-          PORT: 8080
+      DB_USER: root
+      DB_PASSWORD: your_mysql_root_password
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: crawler_db
+      PORT: 8080
     depends_on:
       db:
         condition: service_healthy
+
+  backend-dev:
+    build:
+      context: ./server
+      target: development # We'll add this target to the Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DB_USER: root
+      DB_PASSWORD: your_mysql_root_password
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: crawler_db
+      PORT: 8080
+    volumes:
+      - ./server:/app # Mount the local server directory into the container
+    depends_on:
+      db:
+        condition: service_healthy
+    command: air # Run air for live reloading
 
 volumes:
   db_data:

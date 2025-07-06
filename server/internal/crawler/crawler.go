@@ -1,7 +1,6 @@
 package crawler
 
 import (
-	"bufio"
 	"bytes"
 	"io"
 	"log"
@@ -26,11 +25,19 @@ func Crawl(result *models.CrawlResult) error {
 	}
 	defer resp.Body.Close()
 
+	// Read the response body into a buffer so it can be read multiple times
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		result.Status = "error"
+		result.ErrorMessage = err.Error()
+		return err
+	}
+
 	// Get the HTML version
-	result.HTMLVersion = getHTMLVersion(resp)
+	result.HTMLVersion = getHTMLVersion(bodyBytes)
 
 	// Parse the HTML
-	doc, err := html.Parse(resp.Body)
+	doc, err := html.Parse(bytes.NewReader(bodyBytes))
 	if err != nil {
 		result.Status = "error"
 		result.ErrorMessage = err.Error()
@@ -111,33 +118,24 @@ func checkForLoginForm(n *html.Node, result *models.CrawlResult) {
 }
 
 // getHTMLVersion tries to determine the HTML version from the doctype.
-func getHTMLVersion(resp *http.Response) string {
-	// Read the response body into a buffer so it can be read multiple times
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "Unknown"
-	}
-	// Restore the body for subsequent reads (e.g., by html.Parse)
-	resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+func getHTMLVersion(bodyBytes []byte) string {
+	// Read the entire body as a string for doctype detection
+	bodyString := strings.ToLower(strings.TrimSpace(string(bodyBytes)))
 
-	scanner := bufio.NewScanner(bytes.NewReader(bodyBytes))
-	for i := 0; i < 10 && scanner.Scan(); i++ { // Scan up to first 10 lines
-		line := strings.ToLower(strings.TrimSpace(scanner.Text()))
-		if strings.HasPrefix(line, "<!doctype html>") {
-			return "HTML5"
-		} else if strings.Contains(line, "-//w3c//dtd html 4.01//en") {
-			return "HTML 4.01 Strict"
-		} else if strings.Contains(line, "-//w3c//dtd xhtml 1.0 strict//en") {
-			return "XHTML 1.0 Strict"
-		} else if strings.Contains(line, "-//ietf//dtd html 2.0//en") {
-			return "HTML 2.0"
-		} else if strings.Contains(line, "-//w3c//dtd html 3.2 final//en") {
-			return "HTML 3.2"
-		} else if strings.Contains(line, "-//w3c//dtd xhtml 1.1//en") {
-			return "XHTML 1.1"
-		} else if strings.Contains(line, "html profile=") {
-			return "HTML5 with profile"
-		}
+	if strings.Contains(bodyString, "<!doctype html>") {
+		return "HTML5"
+	} else if strings.Contains(bodyString, "-//w3c//dtd html 4.01//en") {
+		return "HTML 4.01 Strict"
+	} else if strings.Contains(bodyString, "-//w3c//dtd xhtml 1.0 strict//en") {
+		return "XHTML 1.0 Strict"
+	} else if strings.Contains(bodyString, "-//ietf//dtd html 2.0//en") {
+		return "HTML 2.0"
+	} else if strings.Contains(bodyString, "-//w3c//dtd html 3.2 final//en") {
+		return "HTML 3.2"
+	} else if strings.Contains(bodyString, "-//w3c//dtd xhtml 1.1//en") {
+		return "XHTML 1.1"
+	} else if strings.Contains(bodyString, "html profile=") {
+		return "HTML5 with profile"
 	}
 
 	return "Unknown"

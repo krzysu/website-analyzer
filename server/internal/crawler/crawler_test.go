@@ -1,9 +1,7 @@
 package crawler
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -213,7 +211,6 @@ func TestCrawl_ErrorHandling(t *testing.T) {
 	assert.Equal(t, 1, result.InaccessibleLinksCount)
 }
 
-
 func TestGetHTMLVersion(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -256,41 +253,37 @@ func TestGetHTMLVersion(t *testing.T) {
 			expected: "HTML5",
 		},
 		{
-            name:     "HTML 2.0 Doctype",
-            html:     "<!DOCTYPE html PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><body></body></html>",
-            expected: "HTML 2.0",
-        },
-        {
-            name:     "HTML 3.2 Doctype",
-            html:     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<html><body></body></html>",
-            expected: "HTML 3.2",
-        },
-        {
-            name:     "XHTML 1.1 Doctype",
-            html:     "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n<html><body></body></html>",
-            expected: "XHTML 1.1",
-        },
-        {
-            name:     "HTML5 with profile",
-            html:     "<!DOCTYPE html profile=\"http://www.w3.org/2000/svg\">\n<html><body></body></html>",
-            expected: "HTML5 with profile",
-        },
+			name:     "HTML 2.0 Doctype",
+			html:     "<!DOCTYPE html PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><body></body></html>",
+			expected: "HTML 2.0",
+		},
+		{
+			name:     "HTML 3.2 Doctype",
+			html:     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<html><body></body></html>",
+			expected: "HTML 3.2",
+		},
+		{
+			name:     "XHTML 1.1 Doctype",
+			html:     "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n<html><body></body></html>",
+			expected: "XHTML 1.1",
+		},
+		{
+			name:     "HTML5 with profile",
+			html:     "<!DOCTYPE html profile=\"http://www.w3.org/2000/svg\">\n<html><body></body></html>",
+			expected: "HTML5 with profile",
+		},
+		{
+			name:     "HTML5 Doctype and html tag on same line",
+			html:     "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/>",
+			expected: "HTML5",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a dummy http.Response
-			resp := &http.Response{
-				Body: io.NopCloser(bytes.NewBufferString(tt.html)),
-			}
-			version := getHTMLVersion(resp)
+			version := getHTMLVersion([]byte(tt.html))
 			assert.Equal(t, tt.expected, version)
-
-			// Ensure the body is still readable after getHTMLVersion
-			// This is crucial because html.Parse will read it again.
-			remainingBytes, err := io.ReadAll(resp.Body)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.html, string(remainingBytes))
 		})
 	}
 }

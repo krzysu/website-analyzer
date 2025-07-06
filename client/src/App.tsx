@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import UrlDetail from "./components/UrlDetail";
 import UrlInputForm from "./components/UrlInputForm";
 import UrlTable from "./components/UrlTable";
@@ -13,14 +14,11 @@ function App() {
   const fetchCrawlResults = useCallback(async () => {
     const apiKey = import.meta.env.VITE_API_KEY;
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/urls`,
-        {
-          headers: {
-            "X-API-Key": apiKey,
-          },
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/urls`, {
+        headers: {
+          "X-API-Key": apiKey,
         },
-      );
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch crawl results");
       }
@@ -42,17 +40,14 @@ function App() {
     const apiKey = import.meta.env.VITE_API_KEY;
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/urls`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-API-Key": apiKey,
-          },
-          body: JSON.stringify({ url }),
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/urls`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
         },
-      );
+        body: JSON.stringify({ url }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -85,17 +80,14 @@ function App() {
     const apiKey = import.meta.env.VITE_API_KEY;
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/urls`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            "X-API-Key": apiKey,
-          },
-          body: JSON.stringify({ ids: selectedUrls }),
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/urls`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
         },
-      );
+        body: JSON.stringify({ ids: selectedUrls }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -115,17 +107,14 @@ function App() {
     const apiKey = import.meta.env.VITE_API_KEY;
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/urls/rerun`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-API-Key": apiKey,
-          },
-          body: JSON.stringify({ ids: selectedUrls }),
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/urls/rerun`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
         },
-      );
+        body: JSON.stringify({ ids: selectedUrls }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -150,20 +139,20 @@ function App() {
             <>
               <UrlInputForm onSubmit={handleUrlSubmit} />
               <div>
-                <button
+                <Button
                   type="button"
                   onClick={handleBulkDelete}
                   disabled={selectedUrls.length === 0}
                 >
                   Delete Selected
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={handleBulkRerun}
                   disabled={selectedUrls.length === 0}
                 >
                   Re-run Selected
-                </button>
+                </Button>
               </div>
               <UrlTable
                 results={crawlResults}

@@ -17,14 +17,11 @@ const UrlDetail: React.FC = () => {
     const fetchUrlDetail = async () => {
       const apiKey = import.meta.env.VITE_API_KEY;
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/urls/${id}`,
-          {
-            headers: {
-              "X-API-Key": apiKey,
-            },
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/urls/${id}`, {
+          headers: {
+            "X-API-Key": apiKey,
           },
-        );
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch URL details");
         }
@@ -76,8 +73,7 @@ const UrlDetail: React.FC = () => {
         <strong>HTML Version:</strong> {crawlResult.HTMLVersion}
       </p>
       <p>
-        <strong>Has Login Form:</strong>{" "}
-        {crawlResult.HasLoginForm ? "Yes" : "No"}
+        <strong>Has Login Form:</strong> {crawlResult.HasLoginForm ? "Yes" : "No"}
       </p>
 
       <h3>Heading Counts:</h3>

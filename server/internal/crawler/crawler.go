@@ -122,20 +122,23 @@ func getHTMLVersion(bodyBytes []byte) string {
 	// Read the entire body as a string for doctype detection
 	bodyString := strings.ToLower(strings.TrimSpace(string(bodyBytes)))
 
-	if strings.Contains(bodyString, "<!doctype html>") {
-		return "HTML5"
-	} else if strings.Contains(bodyString, "-//w3c//dtd html 4.01//en") {
-		return "HTML 4.01 Strict"
-	} else if strings.Contains(bodyString, "-//w3c//dtd xhtml 1.0 strict//en") {
-		return "XHTML 1.0 Strict"
-	} else if strings.Contains(bodyString, "-//ietf//dtd html 2.0//en") {
-		return "HTML 2.0"
-	} else if strings.Contains(bodyString, "-//w3c//dtd html 3.2 final//en") {
-		return "HTML 3.2"
-	} else if strings.Contains(bodyString, "-//w3c//dtd xhtml 1.1//en") {
-		return "XHTML 1.1"
-	} else if strings.Contains(bodyString, "html profile=") {
-		return "HTML5 with profile"
+	signatures := []struct {
+		Keyword string
+		Version string
+	}{
+		{"<!doctype html>", "HTML5"},
+		{"-//w3c//dtd html 4.01//en", "HTML 4.01 Strict"},
+		{"-//w3c//dtd xhtml 1.0 strict//en", "XHTML 1.0 Strict"},
+		{"-//ietf//dtd html 2.0//en", "HTML 2.0"},
+		{"-//w3c//dtd html 3.2 final//en", "HTML 3.2"},
+		{"-//w3c//dtd xhtml 1.1//en", "XHTML 1.1"},
+		{"html profile=", "HTML5 with profile"},
+	}
+
+	for _, sig := range signatures {
+		if strings.Contains(bodyString, sig.Keyword) {
+			return sig.Version
+		}
 	}
 
 	return "Unknown"

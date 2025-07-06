@@ -10,7 +10,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 export function DetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const { crawlResult, isLoading, error } = useCrawlResultDetail(id || "");
+  const { data: crawlResult, isLoading, error } = useCrawlResultDetail(id || "");
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;

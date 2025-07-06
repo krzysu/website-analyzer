@@ -5,11 +5,9 @@ import { useApi } from "./useApi";
 export function useCrawlResultDetail(id: string) {
   const { callApi } = useApi();
 
-  const { data: crawlResult, ...queryInfo } = useQuery<CrawlResult>({
+  return useQuery<CrawlResult | undefined>({
     queryKey: ["crawlResult", id],
     queryFn: () => callApi<CrawlResult>(`/urls/${id}`),
     enabled: !!id, // Only run the query if id is available
   });
-
-  return { crawlResult, ...queryInfo };
 }

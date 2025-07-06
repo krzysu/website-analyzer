@@ -26,7 +26,7 @@ export function UrlTable({
 }: UrlTableProps) {
   return (
     <div className="relative w-full overflow-auto">
-      <Table>
+      <Table className="min-w-full">
         <TableHeader>
           <TableRow>
             <TableHead title="Select for bulk actions">

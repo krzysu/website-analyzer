@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -13,19 +14,28 @@ import { Input } from "@/components/ui/input";
 
 interface UrlInputFormProps {
   onSubmit: (url: string) => void;
+  autoFocus?: boolean;
 }
 
 const formSchema = z.object({
   url: z.string().url({ message: "Please enter a valid URL." }),
 });
 
-export function UrlInputForm({ onSubmit }: UrlInputFormProps) {
+export function UrlInputForm({ onSubmit, autoFocus }: UrlInputFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       url: "",
     },
   });
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
 
   function handleSubmit(values: z.infer<typeof formSchema>) {
     onSubmit(values.url);
@@ -34,14 +44,17 @@ export function UrlInputForm({ onSubmit }: UrlInputFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex space-x-2">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full max-w-lg"
+      >
         <FormField
           control={form.control}
           name="url"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex-grow">
               <FormControl>
-                <Input placeholder="https://example.com" {...field} className="w-96" />
+                <Input placeholder="https://example.com" {...field} ref={inputRef} />
               </FormControl>
               <FormMessage />
             </FormItem>

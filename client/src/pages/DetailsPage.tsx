@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useCrawlResultDetail } from "@/hooks/useCrawlResultDetail";
-import { getStatusEmoji } from "@/lib/emojis";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -38,21 +37,23 @@ export function DetailsPage() {
 
   return (
     <>
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle>Details for: {crawlResult.URL}</CardTitle>
+      <Card className="mb-6">
+        <CardHeader className="flex flex-row justify-between items-center">
+          <CardTitle>{crawlResult.PageTitle || crawlResult.URL}</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
-            <Label>Status:</Label>
-            <p className="flex items-center space-x-2">
-              <span>{getStatusEmoji(crawlResult.Status)}</span>
-              <span>{crawlResult.Status}</span>
+            <Label>URL:</Label>
+            <p>
+              <a
+                href={crawlResult.URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+              >
+                {crawlResult.URL}
+              </a>
             </p>
-          </div>
-          <div>
-            <Label>Page Title:</Label>
-            <p>{crawlResult.PageTitle || "N/A"}</p>
           </div>
           <div>
             <Label>HTML Version:</Label>
@@ -79,7 +80,7 @@ export function DetailsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Heading Counts</CardTitle>
@@ -106,19 +107,31 @@ export function DetailsPage() {
           <CardHeader>
             <CardTitle>Link Distribution</CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="flex flex-col items-center">
             {crawlResult.InternalLinksCount > 0 || crawlResult.ExternalLinksCount > 0 ? (
-              <div style={{ width: "300px", height: "300px" }}>
+              <div className="mb-4" style={{ width: "300px", height: "300px" }}>
                 <Pie data={chartData} />
               </div>
             ) : (
               <p>No links found.</p>
             )}
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">Internal Links</TableCell>
+                  <TableCell>{crawlResult.InternalLinksCount}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">External Links</TableCell>
+                  <TableCell>{crawlResult.ExternalLinksCount}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="mt-4">
+      <Card className="mt-6">
         <CardHeader>
           <CardTitle>Broken Links ({crawlResult.InaccessibleLinksCount})</CardTitle>
         </CardHeader>

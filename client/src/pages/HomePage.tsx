@@ -43,30 +43,31 @@ export function HomePage() {
   return (
     <>
       {crawlResults.length === 0 ? (
-        <Card className="w-full">
+        <Card className="w-full max-w-lg mx-auto">
           <CardHeader>
-            <CardTitle>No Websites Analyzed Yet</CardTitle>
+            <CardTitle className="text-center">No Websites Analyzed Yet</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="mb-4 text-6xl">🚀</p>
-            <p className="mb-4">Start by analyzing your first website.</p>
+            <p className="mb-6 text-6xl">🚀</p>
+            <p className="mb-6">Start by analyzing your first website.</p>
             <div className="flex justify-center">
-              <UrlInputForm onSubmit={handleUrlSubmit} />
+              <div className="w-full max-w-lg">
+                <UrlInputForm onSubmit={handleUrlSubmit} autoFocus={true} />
+              </div>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          <div className="space-y-4">
-            <Card className="w-full">
-              <CardHeader className="flex flex-row justify-between items-center">
-                <CardTitle>Crawl Results</CardTitle>
-              </CardHeader>
-              <div className="flex items-center space-x-2 px-6 pb-4">
+        <div className="space-y-8">
+          <Card className="w-full">
+            <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+              <CardTitle>Crawl Results</CardTitle>
+              <div className="flex items-center space-x-4">
                 <Button
                   onClick={handleBulkDelete}
                   disabled={selectedUrls.length === 0}
                   size="sm"
+                  variant="destructive"
                 >
                   Delete Selected
                 </Button>
@@ -78,16 +79,16 @@ export function HomePage() {
                   Re-run Selected
                 </Button>
               </div>
-              <CardContent>
-                <UrlTable
-                  results={crawlResults}
-                  onRowClick={handleRowClick}
-                  selectedUrls={selectedUrls}
-                  onCheckboxChange={handleCheckboxChange}
-                />
-              </CardContent>
-            </Card>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <UrlTable
+                results={crawlResults}
+                onRowClick={handleRowClick}
+                selectedUrls={selectedUrls}
+                onCheckboxChange={handleCheckboxChange}
+              />
+            </CardContent>
+          </Card>
         </div>
       )}
     </>

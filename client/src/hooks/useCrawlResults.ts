@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { CrawlResult } from "../types.ts";
+import type { CrawlResult } from "@/types.ts";
 import { useApi } from "./useApi";
 
 export function useCrawlResults() {

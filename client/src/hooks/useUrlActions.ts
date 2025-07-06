@@ -6,15 +6,12 @@ export function useUrlActions(fetchCrawlResults: () => void) {
 
   const handleUrlSubmit = useCallback(
     async (url: string) => {
-      console.log("Submitting URL:", url);
-
       try {
         await callApi("/urls", {
           method: "POST",
           body: JSON.stringify({ url }),
         });
 
-        console.log("URL submitted successfully:");
         fetchCrawlResults(); // Refresh the list after submitting a new URL
       } catch (error) {
         console.error("Error submitting URL:", error);
@@ -34,7 +31,6 @@ export function useUrlActions(fetchCrawlResults: () => void) {
           body: JSON.stringify({ ids: selectedUrls }),
         });
 
-        console.log("URLs deleted successfully");
         fetchCrawlResults();
       } catch (error) {
         console.error("Error deleting URLs:", error);
@@ -53,7 +49,6 @@ export function useUrlActions(fetchCrawlResults: () => void) {
           body: JSON.stringify({ ids: selectedUrls }),
         });
 
-        console.log("Re-run initiated successfully");
         fetchCrawlResults();
       } catch (error) {
         console.error("Error re-running analysis:", error);

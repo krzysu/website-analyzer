@@ -1,32 +1,54 @@
-import type React from "react";
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 interface UrlInputFormProps {
   onSubmit: (url: string) => void;
 }
 
-const UrlInputForm: React.FC<UrlInputFormProps> = ({ onSubmit }) => {
-  const [url, setUrl] = useState("");
+const formSchema = z.object({
+  url: z.string().url({ message: "Please enter a valid URL." }),
+});
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (url.trim()) {
-      onSubmit(url);
-      setUrl("");
-    }
-  };
+export function UrlInputForm({ onSubmit }: UrlInputFormProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      url: "",
+    },
+  });
+
+  function handleSubmit(values: z.infer<typeof formSchema>) {
+    onSubmit(values.url);
+    form.reset();
+  }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        placeholder="Enter URL to analyze"
-      />
-      <button type="submit">Analyze</button>
-    </form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex space-x-2">
+        <FormField
+          control={form.control}
+          name="url"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="https://example.com" {...field} className="w-96" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Analyze</Button>
+      </form>
+    </Form>
   );
-};
-
-export default UrlInputForm;
+}

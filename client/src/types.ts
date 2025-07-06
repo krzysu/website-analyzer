@@ -1,9 +1,11 @@
+export type CrawlStatus = "queued" | "running" | "completed" | "error";
+
 export interface CrawlResult {
   ID: number;
   CreatedAt: string;
   UpdatedAt: string;
   URL: string;
-  Status: string;
+  Status: CrawlStatus;
   PageTitle: string;
   HTMLVersion: string;
   Headings: { [key: string]: number };

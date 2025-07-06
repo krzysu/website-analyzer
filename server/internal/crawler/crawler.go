@@ -162,7 +162,7 @@ func checkLinks(links []string, result *models.CrawlResult) {
 			}
 			log.Printf("Link %s returned status: %d\n", link, resp.StatusCode)
 			if resp.StatusCode >= 400 {
-				brokenLinksChan <- map[string]any{"url": link, "status_code": resp.StatusCode}
+				brokenLinksChan <- map[string]any{"url": link, "statusCode": resp.StatusCode}
 			}
 		}(link)
 	}

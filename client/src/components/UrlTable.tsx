@@ -1,5 +1,15 @@
-import type React from "react";
-import type { CrawlResult } from "../types.ts";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getStatusEmoji } from "@/lib/emojis";
+import type { CrawlResult } from "@/types.ts";
 
 interface UrlTableProps {
   results: CrawlResult[];
@@ -8,56 +18,53 @@ interface UrlTableProps {
   onCheckboxChange: (id: number) => void;
 }
 
-const UrlTable: React.FC<UrlTableProps> = ({
+export function UrlTable({
   results,
   onRowClick,
   selectedUrls,
   onCheckboxChange,
-}) => {
+}: UrlTableProps) {
   return (
-    <table>
-      <thead>
-        <tr>
-          <th></th> {/* Checkbox column */}
-          <th>Title</th>
-          <th>HTML Version</th>
-          <th>Internal Links</th>
-          <th>External Links</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {results.map((result) => (
-          <tr
-            key={result.ID}
-            onClick={() => onRowClick(result.ID)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                onRowClick(result.ID);
-              }
-            }}
-            tabIndex={0}
-            style={{ cursor: "pointer" }}
-          >
-            <td>
-              <input
-                type="checkbox"
-                checked={selectedUrls.includes(result.ID)}
-                onChange={() => onCheckboxChange(result.ID)}
-              />
-            </td>
-            <td style={{ cursor: "pointer" }}>
-              {result.PageTitle || "Fetching title..."}
-            </td>
-            <td>{result.HTMLVersion}</td>
-            <td>{result.InternalLinksCount}</td>
-            <td>{result.ExternalLinksCount}</td>
-            <td>{result.Status}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="relative w-full overflow-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead title="Select for bulk actions">
+              <span className="sr-only">Bulk Actions</span>
+            </TableHead>
+            <TableHead>URL</TableHead>
+            <TableHead>Title</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Details</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {results.map((result) => (
+            <TableRow key={result.ID}>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedUrls.includes(result.ID)}
+                  onCheckedChange={() => onCheckboxChange(result.ID)}
+                />
+              </TableCell>
+              <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+                {result.URL}
+              </TableCell>
+              <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+                {result.PageTitle || "Fetching title..."}
+              </TableCell>
+              <TableCell>
+                <span>{getStatusEmoji(result.Status)}</span> <span>{result.Status}</span>
+              </TableCell>
+              <TableCell className="text-right">
+                <Button variant="outline" size="sm" onClick={() => onRowClick(result.ID)}>
+                  View
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
-};
-
-export default UrlTable;
+}

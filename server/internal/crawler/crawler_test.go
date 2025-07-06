@@ -120,10 +120,10 @@ func TestCrawl_InaccessibleLinks(t *testing.T) {
 	found404 := false
 	found500 := false
 	for _, bl := range result.BrokenLinks {
-		statusCode, ok := bl["status_code"].(int)
+		statusCode, ok := bl["statusCode"].(int)
 		if !ok {
 			// If it's not an int, try float64 (common with JSON unmarshalling)
-			statusCodeFloat, okFloat := bl["status_code"].(float64)
+			statusCodeFloat, okFloat := bl["statusCode"].(float64)
 			if okFloat {
 				statusCode = int(statusCodeFloat)
 			}

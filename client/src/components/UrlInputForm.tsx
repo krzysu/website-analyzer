@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import type React from "react";
+import { useState } from "react";
 
 interface UrlInputFormProps {
   onSubmit: (url: string) => void;
 }
 
 const UrlInputForm: React.FC<UrlInputFormProps> = ({ onSubmit }) => {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) {
       onSubmit(url);
-      setUrl('');
+      setUrl("");
     }
   };
 

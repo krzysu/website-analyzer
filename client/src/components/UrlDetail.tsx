@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Pie } from "react-chartjs-2";
 import { useParams } from "react-router-dom";
 import type { CrawlResult } from "../types.ts";
-import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -22,14 +23,14 @@ const UrlDetail: React.FC = () => {
             headers: {
               "X-API-Key": apiKey,
             },
-          }
+          },
         );
         if (!response.ok) {
           throw new Error("Failed to fetch URL details");
         }
         const data: CrawlResult = await response.json();
         setCrawlResult(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(err.message);
       } finally {
         setLoading(false);
@@ -96,8 +97,8 @@ const UrlDetail: React.FC = () => {
       <h3>Broken Links ({crawlResult.InaccessibleLinksCount}):</h3>
       {crawlResult.BrokenLinks.length > 0 ? (
         <ul>
-          {crawlResult.BrokenLinks.map((link, index) => (
-            <li key={index}>
+          {crawlResult.BrokenLinks.map((link, _index) => (
+            <li key={link.url}>
               {link.url} (Status: {link.statusCode})
             </li>
           ))}

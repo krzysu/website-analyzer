@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import type { CrawlResult } from "../types.ts";
 
 interface UrlTableProps {
@@ -28,7 +28,17 @@ const UrlTable: React.FC<UrlTableProps> = ({
       </thead>
       <tbody>
         {results.map((result) => (
-          <tr key={result.ID}>
+          <tr
+            key={result.ID}
+            onClick={() => onRowClick(result.ID)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                onRowClick(result.ID);
+              }
+            }}
+            tabIndex={0}
+            style={{ cursor: "pointer" }}
+          >
             <td>
               <input
                 type="checkbox"
@@ -36,10 +46,7 @@ const UrlTable: React.FC<UrlTableProps> = ({
                 onChange={() => onCheckboxChange(result.ID)}
               />
             </td>
-            <td
-              onClick={() => onRowClick(result.ID)}
-              style={{ cursor: "pointer" }}
-            >
+            <td style={{ cursor: "pointer" }}>
               {result.PageTitle || "Fetching title..."}
             </td>
             <td>{result.HTMLVersion}</td>

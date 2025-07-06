@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import UrlDetail from "./components/UrlDetail";
 import UrlInputForm from "./components/UrlInputForm";
 import UrlTable from "./components/UrlTable";
-import UrlDetail from "./components/UrlDetail";
 import type { CrawlResult } from "./types.ts";
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
   const [selectedUrls, setSelectedUrls] = useState<number[]>([]);
   const navigate = useNavigate();
 
-  const fetchCrawlResults = async () => {
+  const fetchCrawlResults = useCallback(async () => {
     const apiKey = import.meta.env.VITE_API_KEY;
     try {
       const response = await fetch(
@@ -19,7 +19,7 @@ function App() {
           headers: {
             "X-API-Key": apiKey,
           },
-        }
+        },
       );
       if (!response.ok) {
         throw new Error("Failed to fetch crawl results");
@@ -29,13 +29,13 @@ function App() {
     } catch (error) {
       console.error("Error fetching crawl results:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCrawlResults();
     const intervalId = setInterval(fetchCrawlResults, 5000); // Poll every 5 seconds
     return () => clearInterval(intervalId);
-  }, []);
+  }, [fetchCrawlResults]);
 
   const handleUrlSubmit = async (url: string) => {
     console.log("Submitting URL:", url);
@@ -51,7 +51,7 @@ function App() {
             "X-API-Key": apiKey,
           },
           body: JSON.stringify({ url }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -76,7 +76,7 @@ function App() {
     setSelectedUrls((prevSelected) =>
       prevSelected.includes(id)
         ? prevSelected.filter((urlId) => urlId !== id)
-        : [...prevSelected, id]
+        : [...prevSelected, id],
     );
   };
 
@@ -94,7 +94,7 @@ function App() {
             "X-API-Key": apiKey,
           },
           body: JSON.stringify({ ids: selectedUrls }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -124,7 +124,7 @@ function App() {
             "X-API-Key": apiKey,
           },
           body: JSON.stringify({ ids: selectedUrls }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -151,12 +151,14 @@ function App() {
               <UrlInputForm onSubmit={handleUrlSubmit} />
               <div>
                 <button
+                  type="button"
                   onClick={handleBulkDelete}
                   disabled={selectedUrls.length === 0}
                 >
                   Delete Selected
                 </button>
                 <button
+                  type="button"
                   onClick={handleBulkRerun}
                   disabled={selectedUrls.length === 0}
                 >

@@ -1,19 +1,30 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BulkUrlInputForm } from "@/components/BulkUrlInputForm";
-import { UrlInputForm } from "@/components/UrlInputForm";
+import { UrlInputForms } from "@/components/UrlInputForms";
 import { UrlTable } from "@/components/UrlTable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useCrawlResults } from "@/hooks/useCrawlResults";
 import { useUrlActions } from "@/hooks/useUrlActions";
 
 export function HomePage() {
   const [selectedUrls, setSelectedUrls] = useState<number[]>([]);
   const [isBulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   const { crawlResults } = useCrawlResults({ polling: true });
+
+  const filteredCrawlResults = useMemo(() => {
+    return crawlResults.filter(
+      (result) =>
+        result.URL.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.PageTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.Status.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [crawlResults, searchTerm]);
+
   const {
     handleUrlSubmit,
     handleBulkDelete: performBulkDelete,
@@ -53,23 +64,13 @@ export function HomePage() {
           <CardContent className="text-center">
             <p className="mb-6 text-6xl">🚀</p>
             <p className="mb-6">Start by analyzing your first website.</p>
-            <div className="w-full max-w-md mx-auto space-y-4">
-              <UrlInputForm onSubmit={handleUrlSubmit} autoFocus={true} />
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Or</span>
-                </div>
-              </div>
-              <BulkUrlInputForm
-                onSubmit={handleBulkUrlSubmit}
-                open={isBulkDialogOpen}
-                onOpenChange={setBulkDialogOpen}
-                displayMode="full"
-              />
-            </div>
+            <UrlInputForms
+              handleUrlSubmit={handleUrlSubmit}
+              handleBulkUrlSubmit={handleBulkUrlSubmit}
+              isBulkDialogOpen={isBulkDialogOpen}
+              setBulkDialogOpen={setBulkDialogOpen}
+              autoFocus={true}
+            />
           </CardContent>
         </Card>
       ) : (
@@ -96,8 +97,17 @@ export function HomePage() {
               </div>
             </CardHeader>
             <CardContent>
+              <div className="mb-4">
+                <Input
+                  type="text"
+                  placeholder="Search URLs, titles, or statuses..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
               <UrlTable
-                results={crawlResults}
+                results={filteredCrawlResults}
                 onRowClick={handleRowClick}
                 selectedUrls={selectedUrls}
                 onCheckboxChange={handleCheckboxChange}

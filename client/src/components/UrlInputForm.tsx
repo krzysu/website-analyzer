@@ -15,13 +15,14 @@ import { Input } from "@/components/ui/input";
 interface UrlInputFormProps {
   onSubmit: (url: string) => void;
   autoFocus?: boolean;
+  className?: string;
 }
 
 const formSchema = z.object({
   url: z.string().url({ message: "Please enter a valid URL." }),
 });
 
-export function UrlInputForm({ onSubmit, autoFocus }: UrlInputFormProps) {
+export function UrlInputForm({ onSubmit, autoFocus, className }: UrlInputFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,7 +47,7 @@ export function UrlInputForm({ onSubmit, autoFocus }: UrlInputFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full max-w-lg"
+        className={`flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full ${className}`}
       >
         <FormField
           control={form.control}

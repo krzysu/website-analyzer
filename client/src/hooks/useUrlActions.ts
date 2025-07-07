@@ -43,5 +43,21 @@ export function useUrlActions() {
     },
   });
 
-  return { handleUrlSubmit, handleBulkDelete, handleBulkRerun };
+  const { mutate: handleBulkUrlSubmit } = useMutation({
+    mutationFn: async (urls: string[]) => {
+      if (urls.length === 0) return;
+
+      for (const url of urls) {
+        await callApi("/urls", {
+          method: "POST",
+          body: JSON.stringify({ url }),
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crawlResults"] });
+    },
+  });
+
+  return { handleUrlSubmit, handleBulkDelete, handleBulkRerun, handleBulkUrlSubmit };
 }

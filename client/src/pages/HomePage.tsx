@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { BulkUrlInputForm } from "@/components/BulkUrlInputForm";
 import { UrlInputForm } from "@/components/UrlInputForm";
 import { UrlTable } from "@/components/UrlTable";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { useUrlActions } from "@/hooks/useUrlActions";
 
 export function HomePage() {
   const [selectedUrls, setSelectedUrls] = useState<number[]>([]);
+  const [isBulkDialogOpen, setBulkDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const { crawlResults } = useCrawlResults({ polling: true });
@@ -16,6 +18,7 @@ export function HomePage() {
     handleUrlSubmit,
     handleBulkDelete: performBulkDelete,
     handleBulkRerun: performBulkRerun,
+    handleBulkUrlSubmit,
   } = useUrlActions();
 
   const handleRowClick = (id: number) => {
@@ -50,10 +53,22 @@ export function HomePage() {
           <CardContent className="text-center">
             <p className="mb-6 text-6xl">🚀</p>
             <p className="mb-6">Start by analyzing your first website.</p>
-            <div className="flex justify-center">
-              <div className="w-full max-w-lg">
-                <UrlInputForm onSubmit={handleUrlSubmit} autoFocus={true} />
+            <div className="w-full max-w-md mx-auto space-y-4">
+              <UrlInputForm onSubmit={handleUrlSubmit} autoFocus={true} />
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">Or</span>
+                </div>
               </div>
+              <BulkUrlInputForm
+                onSubmit={handleBulkUrlSubmit}
+                open={isBulkDialogOpen}
+                onOpenChange={setBulkDialogOpen}
+                displayMode="full"
+              />
             </div>
           </CardContent>
         </Card>

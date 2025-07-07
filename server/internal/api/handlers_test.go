@@ -98,10 +98,14 @@ func TestGetURLs_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var results []models.CrawlResult
-	err = json.Unmarshal(w.Body.Bytes(), &results)
+	var response struct {
+		Results []models.CrawlResult `json:"results"`
+		Total   int64                `json:"total"`
+	}
+	err = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Len(t, results, 2)
+	assert.Len(t, response.Results, 2)
+	assert.Equal(t, int64(2), response.Total)
 }
 
 func TestGetURL_Success(t *testing.T) {

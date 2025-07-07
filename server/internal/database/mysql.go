@@ -111,3 +111,33 @@ func (d *DB) GetCrawlResults(limit, offset int, sortBy, filterBy string) ([]*mod
 	err := query.Find(&results).Error
 	return results, err
 }
+
+// GetCrawlResultsAndTotal retrieves a paginated list of CrawlResults and their total count.
+func (d *DB) GetCrawlResultsAndTotal(limit, offset int, sortBy, filterBy string) ([]*models.CrawlResult, int64, error) {
+	var results []*models.CrawlResult
+	var total int64
+
+	query := d.db.Model(&models.CrawlResult{})
+
+	if filterBy != "" {
+		query = query.Where("url LIKE ?", "%"+filterBy+"%")
+	}
+
+	// Get total count first
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Apply pagination and sorting
+	query = query.Offset(offset).Limit(limit)
+
+	if sortBy != "" {
+		query = query.Order(sortBy)
+	}
+
+	if err := query.Find(&results).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return results, total, nil
+}

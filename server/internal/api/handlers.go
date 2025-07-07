@@ -57,13 +57,13 @@ func GetURLs(db *database.DB) gin.HandlerFunc {
 		sortBy := c.DefaultQuery("sortBy", "created_at")
 		filterBy := c.DefaultQuery("filterBy", "")
 
-		results, err := db.GetCrawlResults(limit, offset, sortBy, filterBy)
+		results, total, err := db.GetCrawlResultsAndTotal(limit, offset, sortBy, filterBy)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, results)
+		c.JSON(http.StatusOK, gin.H{"results": results, "total": total})
 	}
 }
 

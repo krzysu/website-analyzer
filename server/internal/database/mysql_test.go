@@ -171,3 +171,49 @@ func TestGetCrawlResults(t *testing.T) {
 	assert.Len(t, results, 1)
 	assert.Equal(t, "Page 1", results[0].PageTitle)
 }
+
+func TestGetCrawlResultsAndTotal(t *testing.T) {
+	dbInstance, err := NewDBForTest()
+	assert.NoError(t, err)
+	defer dbInstance.Close()
+
+	// Create some test data
+	for i := 0; i < 7; i++ {
+		result := &models.CrawlResult{
+			URL:       fmt.Sprintf("http://example.com/total-page%d", i),
+			Status:    "completed",
+			PageTitle: fmt.Sprintf("Total Page %d", i),
+			CreatedAt: time.Now().Add(time.Duration(i) * time.Hour),
+			UpdatedAt: time.Now().Add(time.Duration(i) * time.Hour),
+		}
+		err = dbInstance.CreateCrawlResult(result)
+		assert.NoError(t, err)
+	}
+
+	// Test pagination and total count
+	results, total, err := dbInstance.GetCrawlResultsAndTotal(3, 0, "", "")
+	assert.NoError(t, err)
+	assert.Len(t, results, 3)
+	assert.Equal(t, int64(7), total)
+	assert.Equal(t, "Total Page 0", results[0].PageTitle)
+
+	results, total, err = dbInstance.GetCrawlResultsAndTotal(3, 3, "", "")
+	assert.NoError(t, err)
+	assert.Len(t, results, 3)
+	assert.Equal(t, int64(7), total)
+	assert.Equal(t, "Total Page 3", results[0].PageTitle)
+
+	// Test filtering and total count
+	results, total, err = dbInstance.GetCrawlResultsAndTotal(5, 0, "", "total-page5")
+	assert.NoError(t, err)
+	assert.Len(t, results, 1)
+	assert.Equal(t, int64(1), total)
+	assert.Equal(t, "Total Page 5", results[0].PageTitle)
+
+	// Test sorting, filtering and total count
+	results, total, err = dbInstance.GetCrawlResultsAndTotal(5, 0, "page_title desc", "total-page")
+	assert.NoError(t, err)
+	assert.Len(t, results, 5)
+	assert.Equal(t, int64(7), total)
+	assert.Equal(t, "Total Page 6", results[0].PageTitle)
+}
